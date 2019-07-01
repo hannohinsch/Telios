@@ -1,0 +1,556 @@
+.source MEMO.WDX
+.
+.DO_TOC
+.
+.def CHAPTER STRING
+.bp
+.H 1 ~STRING
+.end
+.
+.def SUBJ STRING
+.ne 8
+.H 2 ~STRING
+.end
+.
+.def BODY
+.sp 1
+.fi
+.ju
+.end
+.
+.def PT STRING
+.ne 8
+.H 3 ~STRING
+.br
+.nj
+.nf
+.end
+.
+.def ERR STRING
+.ne 6
+.sp 1
+.bd
+~STRING
+.br
+.end
+.
+.nf
+.nj
+
+.sp 7
+.ce 2
+.bd 2
+Telios/One (tm)
+.sp 2
+Reference Manual
+.sp 35
+                 * * 
+       	       *     *	  Circle Micro
+      	      *       *   P.O. Box 33634
+       	       *     *    Washington, DC 20033-0634
+         	 * *      (202) 296-8218
+
+.bp
+.ce
+.bd
+Warranty Disclaimer
+.sp
+.fi
+.ju
+.bd 30
+THIS PROGRAM IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS
+OR IMPLIED, INCLUDING, BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF 
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+.sp
+THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.
+.sp
+IN NO EVENT WILL HANNO HINSCH (TRADING AS CIRCLE MICRO) BE LIABLE TO YOU FOR
+ANY DAMAGES, INCLUDING ANY LOST PROFITS, LOST SAVINGS OR OTHER INCIDENTAL OR
+CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THIS PROGRAM.
+.bd 0
+.sp 5
+.ce
+.bd
+Trademarks
+.sp
+The following trademarks are used in this manual:
+.nj
+.nf
+.sp
+	WordStar is a registered trademark of Micropro International
+	Smartmodem is a trademark of Hayes Microcomputer Products,Inc.
+	Telios is a trademark of Hanno Hinsch
+.fi
+.ju
+.he /Telios(tm) reference// # /
+.fo /Copyright (c) Hanno Hinsch 1983//Version 1.0  Revision 0/
+.
+.CHAPTER Getting Started
+.
+Telios is a communications program for the IBM Personal Computer.
+With the proper hardware (an asynchronous adaptor, modem, and a PC with 
+64K memory, DOS, and an eighty column monitor) and this
+program, you can use your PC as a terminal and exchange data with other 
+computers.  Typical uses
+include transferring files to other personal computers, signing on to large
+time-sharing computers such as The Source and CompuServe, and getting
+the latest news from your local computer bulletin board.
+
+What makes Telios special?
+Telios has several features that make it uniquely powerful.  You'll find
+that sending files to other computers is easier because of our superior
+"throttling" (see discussion of sending files, section 3.2),
+you'll like the paging facility that allows
+scrolling the screen back and forth, and the command files are
+useful for setting up communications options and logging on automatically.
+We hope you will find these features as easy to use as they are useful.
+.
+.SUBJ Making a backup copy
+.
+Every disk fails eventually, and
+the very first thing you should do is make a backup copy of the Telios
+disk.  Then store the original in a safe place, and use only the copy.
+If you haven't learned how to make a copy of a disk, look up the 
+DISKCOPY command in your IBM DOS manual.  It's easy, and having a second
+copy of important disks, such as the Telios disk, will save you
+much aggravation later on.  Do it.
+.
+.SUBJ Copyright law
+.
+Please note that Telios is a copyrighted program.  That means it is 
+illegal--a Federal offense, no less--to make copies of this program except
+for your archival (backup) purposes.  In other words, you may
+not make a copy for use by
+someone else, such as your neighbor or colleague.  
+
+We ask that you respect the copyright law.
+.
+.SUBJ Overview of manual
+.
+This manual has three important chapters.  "A Guided Tour"
+explains how to get started with Telios.  You should read it with a
+working computer in front of you.  The next chapter, "How to Do It," is
+simply a reference organized by topics of interest.  Skim it to
+get an idea of the program's capabilities, then refer back to it when
+you need to make use of those capabilities.  If you get stuck, turn to
+"Problem Solving," a chapter devoted to just that.  In the back we've
+included chapters explaining the various status messages Telios
+uses and a table of the ASCII communications code.
+.
+.
+.
+.
+.CHAPTER A Guided Tour 
+.
+In this chapter we'll show you how to use Telios and introduce its possibilities.
+You won't actually be
+communicating with another computer--this is just a warmup exercise--but
+you will get an idea of how the program works.  There is no need to 
+even turn your modem on.  You'll surely think of questions
+while going through this chapter.  That's OK.  The answers, for the most part,
+are found in the "How To Do It" chapter.  What we're trying to achieve
+is simply getting to the point where you know which questions to ask.  
+
+If you're already familiar with another communications program, or simply
+adventurous, feel free to skip this chapter.  You will probably be
+able to use Telios
+without reading the documentation.
+.
+.SUBJ First steps
+You've made a backup copy of the Telios disk and put the original in a safe
+place, right?  No? Then go back and make a copy.  It's important.
+
+Now that you've prepared a working disk,
+let's fire up the program.
+Telios is started, reasonably enough, by the command "TELIOS."
+Try it.  What do you get?  The copyright screen, which once again reminds
+you that thou shalt not make copies of this program for other people,
+gives you the version number, a pretty circle of stars, and way at the
+bottom, the highlighted instruction to "Press the Enter key to continue."
+The Enter key is the narrow long one where a typewriter has its Return
+key--press
+it. The screen clears, and...Welcome to conversation mode.
+.
+.
+.PT Conversation mode
+.BODY
+Telios works in two modes, conversation mode and command mode.  
+
+What is a mode? It's like an attitude, position, or state of being.
+For example, 
+one might say people
+are sometimes in "sleep mode" and sometimes in "awake mode."
+So it is with Telios.
+
+If the program
+is in conversation mode, anything you type at the keyboard gets sent to the 
+host (The "host" computer is the other computer that you're communicating with;
+we'll use "host" interchangeably with "other computer."  The host may in
+fact be just another Personal Computer.) That's what you want to do 
+most of the time.  Sometimes,
+however, you'll just want to tell Telios something without having the other
+computer know about it.  That's what command mode is for.  When the program
+is in command mode, only the Telios program looks at what you type--nothing
+goes to the host.
+
+When the program is in command mode, you can give it a command (about which
+more later).  You can tell which mode you're in by looking at the position
+of the blinking cursor.  If it's down at the bottom left of the screen, next to
+a ">" symbol, you're in command mode.  If the cursor is in the large upper
+main part of the screen you're in conversation mode.
+Which mode is the program in now?  Do
+you see the ">"?  If you don't see the ">" then you must be in conversation
+mode.  That's the way it should be.
+
+
+Notice down there on the right hand bottom part of your screen the message
+"Remember: Press F1 for HELP" in black-on-green (reverse-video).
+That's a status message, and the place it appears is called,
+appropriately enough, the Status area.  Telios will use that area to keep
+you informed of all sorts of things.  Anything you see there is a message
+from the Telios program, not from the host.  When the other
+computer sends something, it appears in the main, upper part of the screen,
+not in the Status area.
+
+To sum up: the bottom line of the screen is where you type commands
+to Telios, and where Telios puts messages for you (the Status area). The rest
+of the screen is used in conversation mode, and you'll see both what you type and
+what the host sends displayed up there. (Conversation mode is just
+like using an old-fashioned computer terminal.)
+
+Well, the message says "Press F1 for HELP," so go ahead and find the F1 key
+and press it.  You could just stay in conversation
+mode of course, but we want to take a look at what the HELP key (F1) does.
+
+
+.PT The Help key (** F1 **)
+.BODY
+Pressing F1 shows the Help screens.  F1 can be pressed ANYTIME without
+ill effect. After reading the information, just press the Enter key
+to get back to where you left off.  By the way, all function keys and
+commands work even when the Help screens are displayed.
+.
+.SUBJ The first Help screen (special keys & common commands)
+.
+So what do we have here?  A list of things we can do--special keys and
+some commonly used commands.  There are quite a few additional commands, but
+we'll get to those in a minute.  For the moment let's look at the keys:
+
+.ti 5
+F1 -- the HELP key
+.br
+That's the one that got us here, so you know what it does.
+.sp
+.ti 5
+F2 -- move cursor to command line
+.br
+Find the cursor. What mode (conversation or command) are we in?  Is there
+a ">" symbol down there? Yup, we're in command mode.  So the F1 key not
+only displayed the Help screen, it also put us in command mode.  The
+F2 key just puts you in command mode, without showing the Help screen.  You'll
+appreciate it later when you become an expert and don't need help.
+.ne 6
+.sp
+.ti 5
+F4 -- suspend/resume character flow to capture file
+.br
+This key is used in conjunction with the CAPTURE command.
+See discussion of downloading in Chapter 3.
+.sp
+.ti 5
+F8 -- the Break key
+.br
+A "Break" or "Attention" signal is a special signal required by some host 
+computers
+for various purposes. Pressing F8 sends a break, should you need one.
+.sp
+.ti 5
+F10 -- the Panic key
+.br
+The Panic function of this key is simple: it stops things.
+Specifically, it stops a TYPE command and a SEND command.  It also clears
+various "waits" that occur during file transfer.  Generally, the Panic button
+should be pushed if Telios is doing something you wish it wouldn't, and you
+don't know how else to stop it (that's when panic sets in, right?).
+.sp
+.ti 5
+PgUp -- roll the screen back one page
+.ti 5
+PgDn -- roll the screen forward one page
+.ti 5
+Home -- roll the screen back to the first page
+.ti 5
+End -- roll the screen forward to the last page
+.ti 5
+Uparrow -- roll the screen back one line
+.ti 5
+Downarrow -- roll the screen forward one line
+.ti 5
+Ctrl-Home -- clear the screen buffer
+.br
+These keys do something pretty neat: when you're in conversation mode (not now)
+they'll let you get back the lines that rolled off the top of the screen, and
+move back and forth through everything you've seen.  We'll demonstrate that
+later on.
+.sp
+.ti 5
+Shift-PrtSc -- send current screen to printer
+.ti 5
+Ctrl-PrtSc -- toggle character flow to printer
+.br
+These two keys control the flow of characters to your printer.  If you don't
+have a printer, then don't worry about them.  But if you do, you can use
+Shift-PrtSc (the PrtSc key is on the right, under Enter) to send everything on the
+screen to the printer.  Pressing Ctrl-PrtSc, on the other hand, turns the
+printer on and sends all characters that Telios gets in conversation mode 
+(from you and the other
+computer) to the printer. Pressing Ctrl-PrtSc again turns the printer off.
+Press it again; it's on. Et cetera.
+.sp
+.ti 5
+Ins -- send ASCII linefeed (10) character 
+.ti 5
+Del -- send ASCII delete (127) character
+.br
+These two keys aren't mentioned on the Help screen, but you should know
+about them nevertheless.
+Sometimes you'll need to send a Linefeed or a Delete character to the other
+computer.  The IBM PC doesn't have a convenient Linefeed key, so we made
+the one labeled Ins (next to Caps Lock) serve the purpose. The Del key 
+next to it sends an ASCII Del character. 
+
+
+Now what about the commands on the screen?
+You'll see a quick reminder of the functions of F?, DIAL and
+QUIT on the screen. You can assign character strings or special functions
+(like the Panic function) to the Function keys F3 to F10.  You can also
+redefine the meaning of the Backspace and the Enter key.  The F? command
+lists the string associated with each key.  The DIAL command sends
+three strings, one after the other, to the modem.  If the strings are
+set up right, and you're using an intelligent modem, that command will dial
+a phone number.  This is discussed in detail in Chapter 3, in the
+"Modem control" section.
+The QUIT command returns you to 
+the operating system. The final line serves to remind that Telios can read 
+commands from a file, as well as from
+the keyboard.  To execute a command file, type in the name of the file as
+if it were a command. 
+
+Time to get on to the second Help screen.  Press F1 again...
+.
+.
+.
+.
+.SUBJ The second Help screen (** status **)
+.
+Welcome to the Status screen. Here you see a complete picture of what's
+happening. The top two lines tell you if you're capturing to file and
+whether data is being routed to the printer.  The second group shows how
+the communications options are set, and the third tells you how
+the file sending throttles are set.  You can change these settings
+with various commands, all of which are covered in Chapter 3, the how-to
+chapter.
+
+But there's more, so press F1 again...
+
+.SUBJ The third Help screen (files; downloading; uploading)
+.
+Here we have some more commands, and you're probably familiar with the
+first batch. Their
+purpose is to help you manage your disk files; Telios DIR, TYPE, and ERASE
+commands work just like their DOS counterparts. DIR lists the files on
+your disk, TYPE displays the contents of a file, and ERASE erases.
+
+
+CAPTURE is used to capture characters to a disk file.
+When you want to try that (not now, please) read the section on downloading.
+CLOSE is also explained in that section.
+ROUTE allows you to selectively capture some characters (what you type at
+the keyboard, for example) and ignore others.  Use PROTOCOL to tell Telios
+whether or not the Xon/Xoff protocol should be used.
+
+SEND is used
+to send the text in a disk file to the host.
+Telios sends the contents of the file just
+as if you were a (rather fast) typist.  You'll need to read the section on
+uploading files before giving it a try. TCHAR and TWAIT are two commands
+that control the "throttle";  they control the speed with which Telios sends
+lines to the host.
+
+All this talk of commands and you haven't used a one.  What mode
+are we in?
+The cursor is by the ">", and that means
+command mode. Remember when you get Help by pressing F1, you also switch from 
+conversation mode to command mode.
+So let's try one, ignoring (for the moment) what it does.
+
+Type
+.sp
+.ce
+PROTOCOL obey
+.sp
+and press Enter.  There, you've
+just executed your first command. Note that the Status area now has a message
+confirming that the command worked.  Now type 
+.sp
+.ce
+PROTOCOL foo
+.sp
+and press Enter.
+You'll notice, if you look up the PROTOCOL command on the Help screen, 
+that "obey" is an allowed
+option, but "foo" is not.
+The status message,
+reasonably enough, now tells you that it didn't work.  You heard the beep, and
+when you hear the beep Telios is alerting you to something important
+(like a bad command).  By the way, there's no need to type commands
+in upper case.  That's just a convention we use in this manual to help you
+identify commands. They're always printed in upper case, but you can type them
+any way you want.  You can even abbreviate them to the first two letters.
+One last point: type 
+.sp
+.ce
+PROT foo
+.sp
+again, then press the large backspace key (the
+one at the upper right). It deletes the last character you typed, allowing
+corrections.  Make it PROT OFF, then press Enter when it's right.
+
+Great. Press F1 again and we'll
+cover the fourth (and last) Help screen.
+
+.SUBJ The fourth Help screen (function keys; comm. setup)
+.
+Now here's another screen full of commands. 
+
+The DEFINE command assigns character strings to function keys and
+also to the DIAL strings.  If, for example, you wanted key F8 to print
+the file directory, you could...
+.sp
+.nf
+.ce
+DEFINE 8 ^^2DIR^^M
+.fi
+.sp
+Let's go over that.  You already recognize the DIR in the middle.  The 
+^^2 and ^^M
+are examples of "escape sequences," groups of characters that
+represent special functions.  There is an escape sequence for each
+of the 32 unprintable ASCII control characters, plus a couple of special ones.
+^^2 is the escape sequence for command mode; it's just like pressing the F2
+key. ^^M is the escape sequence for ASCII 13, also known as control-M, also
+known as carriage return.  It's the familiar Enter key. There's a list
+of escape sequences in Chapter 3.
+
+DEFINE is also used to set up strings for the DIAL command.  The DIAL command
+sends three strings, one after the other, to the modem.
+
+The second group sets the communications parameters.
+For a discussion of
+setting the communication parameters, see Chapter 3.
+
+The Help screens are
+reminders, not tutorials, and this tour is just an introduction.
+Ok, now you've seen it all. Return to conversation mode by just pressing
+the Enter key.  You can always leave command mode by pressing Enter.
+.
+.
+.SUBJ The command mode key (** F2 **) 
+If you know which command you need, don't bother with F1 and the Help screen.
+Press F2 instead, and zip directly into command mode. Try it once.
+
+Press Enter and you're
+back in conversation
+mode. Simple.
+.
+.SUBJ Paging
+Now for the promised demonstration of the "paging" facility.  First,
+let's type a file onto the screen.  
+Press F2 (command mode again), type 
+.sp
+.ce
+TYPE text
+.sp
+(display contents of file
+named "text"), and press return.  Telios displays the file.  Note the "End of
+file" message, indicating that the TYPE command has finished.
+
+Now that you're back in conversation mode, type
+.sp
+.ce
+This is the end.
+.sp
+This gives us a handy reference point at the end of the text.
+
+Now let's page through the screens.  Push the Home key (numeric keypad key 7). 
+The beginning of the session
+shows. Press PgDn. Press the Uparrow key; try Downarrow,
+PgUp, and End. Play around as long as you wish. Finally, type
+.sp
+.ce
+Enough
+.sp
+Notice how the screen
+rolled forward just past the line where you typed "This is the end"?  
+You can't mess with the
+stuff on the screen; anything you type goes to the end. 
+
+Now press Ctrl-Home.
+All clear--that erased everything in the 
+screen buffer.  A useful feature if there is
+something on the screen--like a secret password--that no one else should see.
+
+The screen buffer (memory) is limited in size, so after a while pressing the 
+Home key rolls
+back to the first 
+.ul
+available
+screen, which isn't necessarily the very first
+one you saw.  The buffer has room for about 20,000 characters.
+.SUBJ QUIT (return to DOS)
+Although you've seen this command before (and we don't want you to leave now),
+you should know more about the QUIT
+command....
+
+The QUIT commands returns you to DOS.  Telios will not disconnect the phone line,
+or drop the "Data Terminal Ready" signal when you quit.  This means that it
+is possible to leave and then return to Telios without disconnecting from
+the host.  Should you want to disconnect, be sure to hang up the
+phone (or tell your modem to disconnect).
+.
+.SUBJ Connecting to the host computer
+.
+This has been a "dry run," of course. We never connected to another computer.
+Now that you've been introduced to the program, let's outline the steps
+necessary to establish real communications.  
+
+Have you connected your modem to the PC? Or is the host directly attached?
+If not, and you need help, read the discussion of modems and cables in Chapter
+3.  Come back when you're done.
+
+The next step is starting Telios
+(stay in conversation mode).
+
+Now you need to set the proper communications parameters, or at the very least
+the right baud rate (use the BAUD command).  The parameters are explained in
+Chapter 3.
+
+Assuming you are working with a modem, dial the phone number of the
+host computer. With some modems, this means dialing the number by hand, and
+then either hanging up or placing the handset in suction cups on the modem.
+So-called "intelligent" modems have the capability to dial the number by
+themselves.   You'll need to check the instructions.  (Check out the DIAL
+command if the modem is intelligent.)
+
+Next, "sign on."  There are a truly bewildering number
+of ways to sign on; each system seems to be different.  If you are perplexed or
+uncertain,
+try to find someone who can give you a hand. 
+(A pleasant exception: Many
+microcomputer bulletin board systems are self-explanatory. Just dial in and
+they provide instructions; you won't need help.)
+
+That's all there is to it.  Remember that everything you type while in
+conversation mode is sent to the host.
+.
+

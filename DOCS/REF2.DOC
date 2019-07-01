@@ -1,0 +1,1006 @@
+.
+.CHAPTER How To Do It
+.
+.SUBJ Printing
+.
+.PT Printing the current screen
+.BODY
+If you want to send the text currently shown on the screen to the printer,
+press the PrtSc key while holding down the shift key.  Be forewarned, if
+the screen is
+changed (new characters are written to it) while being printed,
+you may get a worthless, garbled printout.
+.
+.PT Echoing to the printer
+.BODY
+Pressing PrtSc while holding the Ctrl key  (Ctrl-PrtSc) will
+send all subsequently
+shown characters to the printer. Pressing Ctrl-PrtSc again stops the flow
+of characters to the printer.  The Status screen (press F1 twice) shows
+whether characters are currently being routed to the printer.
+If your printer can't keep up with the characters being sent, the extra
+characters are temporarily stored in a buffer.  If this buffer fills up,
+you'll lose characters. To avoid that, you should either have a fast printer
+(faster than your modem) or capture to a file and then print the file instead
+of echoing data directly to the printer.  Only if the host supports
+the Xon/Xoff protocol can you reliably use a slow printer.  Be sure to
+set PROTOCOL SEND to inform Telios that the host computer accepts Xoff/Xon
+signals.
+.
+.PT Printing a file
+.BODY
+Instead of printing data as you receive it, you may want to first capture
+it in a disk file and then print the file.
+This is easy.  When you have finished capturing, return to DOS,
+press Ctrl-PrtSc, and 
+then use the TYPE command to display the file.  To turn off the printer, press
+Ctrl-PrtSc once more.
+.
+.SUBJ Uploading: Sending a file to the host
+.
+Rather than simply sending text to the host by typing away in
+conversation mode, one frequently sends a whole disk file.  There are
+some fine points to watch for in order to make this work well.  First of
+all, you need to make sure the host is ready to accept the file.
+On a large system, this may mean relying on the system's text editor or it
+may mean starting a special program designed specifically for transferring
+files.  If you're transferring to another PC, it helps if it has some
+sort of communications program such as Telios.  Bulletin board systems have
+their own set of techniques.
+
+After getting the host ready to accept the file, it is important
+not to send too much data too fast.  Most computers, both large and small,
+can accept only relatively small chunks at a time.  There are three ways
+to "throttle" Telios so it doesn't send data too quickly.  If the other
+computer sends a prompt character (or prompt message) whenever it is
+ready to receive a line of input, then use the Telios TCHAR command
+to wait for that character. (Hint: After getting the host ready to accept
+data, look up the "observed tchar" on the Status
+screen. Try using that value for the TCHAR command.)
+If the host is kind enough to
+send an Xoff character whenever it isn't ready, then you need 
+only set PROTOCOL OBEY
+to force Telios to obey the Xon/Xoff protocol. A third
+alternative is to wait a specified length of time after sending
+each line, in the hope that the host will be ready for more data
+after that time.  The TWAIT command sets the time length.
+
+One can mix these techniques, and that is the recommended approach. In
+particular, we suggest first setting TWAIT to a small number (1-5) even if
+the other system sends a prompt or uses the Xon/Xoff protocol.
+Some experimentation may show that for your system you can reduce
+the wait time, or that you don't need to wait at all.
+A common setting that works well with many systems is setting TCHAR ^^J (wait
+for a linefeed)
+and TWAIT 1, although it is sometimes necessary to increase the TWAIT time.
+
+Finally, a caution to those of you who need to send 8-bit data.
+Conventional text files containing normal ASCII data only use 7 bits, and that
+presents no problem.  But if you send executable (.EXE or .COM) files,
+BASIC files, or even some word processor files (e.g., WordStar files), you'll
+find that they include 8-bit data.  You
+.ul
+must
+set PARITY OFF and FILTER OFF
+in order to successfully send 8-bit data.  Otherwise Telios lops off that
+eighth bit. Hint: to find out if a file contains 8-bit data, use the TYPE
+command to display it. If you see any garbled text or out of place characters--
+if it isn't just
+straight, readable text--then the file probably contains 8-bit data.
+
+You should also make sure the host system is prepared to accept 8-bit data.
+Most mainframes cannot.
+.
+.
+.PT Xon/Xoff protocol  
+.BODY
+Many computer systems use the Xon/Xoff protocol to signal when
+they are ready to receive data.  An Xoff character is sent when the
+computer wants to stop receiving data; an Xon is sent when it is once again
+ready to receive.  Telios honors Xoff signals, dutifully waiting for an
+Xon, when PROTOCOL OBEY is set.  Should Telios receive an Xoff without a
+corresponding Xon,
+entering characters at the
+keyboard will result in an error message.  You can end this Xon wait by
+pressing the Panic (F10) key.
+.
+.PT SEND  (send file to host computer)
+usage: SEND filename  (filename = name of DOS file to send)
+.BODY
+SEND is used to send (or upload) a file to the
+host. 
+
+If the filter is on,
+linefeeds are deleted, and  sending stops when an ASCII 26 (DOS end
+of file marker) is seen.
+
+If the filter is off, all characters in the file are sent and the end of file
+is sensed by the file size, not by the ASCII 26 character.
+
+Pressing the Panic key (F10) stops the sending.
+.
+.
+.PT TCHAR  (set turnaround character)
+usage: TCHAR value  (value = ASCII char, or OFF)
+default: OFF
+.BODY
+If a TCHAR value is specified, Telios stops and waits to receive that
+character after every subsequent carriage return sent from a file or the XSTRING
+command.
+This prevents sending data to the host when it isn't ready.  It can also be
+used to wait for an autodialing modem to complete its task.  If TCHAR
+is set OFF, Telios does not wait for any turnaround character.
+See also TWAIT.
+
+Control characters should be specified with the
+escape sequences used for DEFINE.
+
+The Status screen (press F1 twice) displays the last character received from
+the host.  If the host sends a turnaround character, this "observed" character
+is it.
+
+NOTE:  TCHAR does not wait, it simply sets a wait.  Telios will actually 
+wait for the
+specified character only after it sends a carriage return character.
+Make sure you set the TCHAR 
+.ul
+before
+sending the carriage return that is to
+trigger it.
+.
+.PT TWAIT  (set turnaround wait time)
+usage: TWAIT time  (time = tenths of a second, 0-255)
+default: 0
+.BODY
+After sending a carriage return from either a file or an XCHAR command,
+Telios waits for the line to be quiet (i.e. for no characters to be received)
+the specified length of time before sending the next line.
+This gives the host computer
+time to ready itself for additional data.
+Note that if both TCHAR and TWAIT are set, Telios will not start sending
+till some time (the TWAIT time) after the TCHAR is received.
+
+NOTE: TWAIT does not wait, it simply sets a wait time.  Telios actually
+waits only after sending a subsequent carriage return character. 
+Make sure you set the TWAIT 
+.ul
+before
+sending the carriage return that is to
+trigger it.
+
+.
+.SUBJ Downloading: Capturing data on disk
+.
+Capturing data to a file is quite straightforward.  Just use the CAPTURE
+command to start, then F4 to stop/restart, and CLOSE when you're
+finished.  
+You can elect to capture only incoming (received) or outgoing (sent) characters
+using the ROUTE command.
+
+Note that you have to CLOSE the file before switching diskettes,
+and you have to CLOSE before SENDing or TYPEing it.  
+The display of the TYPE command,
+the Help screens, and the DIR display are not captured.
+
+If you're receiving 8-bit data (explained in 3.2),
+then you must set FILTER OFF and PARITY OFF.
+.
+.PT CAPTURE  (capture data in disk file)
+usage: CAPTURE filename  (filename = name of file to capture to)
+.BODY
+If a capture file is activated with the CAPTURE command, characters subsequently
+received are sent to the file.  If the file already exists 
+at the time of the command, its previous 
+contents are destroyed.
+
+You can suspend the flow of
+characters to the file by pressing F4.  A second press of F4 will toggle
+the flow back on again, and so forth. A small plus sign (+) in the lower
+right hand of the screen, next to the Status area, indicates that characters 
+are being captured.  A
+minus sign (-) indicates a file is active but not capturing (it has been toggled
+off using F4).  No sign means no CAPTURE file is active.  The name
+of the active capture file (if there is one) is shown on the Status screen
+(press F1 twice).
+
+A subsequent CAPTURE command stops the flow of characters into the currently 
+active file
+and starts sending
+characters to the newly specified file.
+.
+.
+.PT CLOSE (stop data capture)
+.BODY
+CLOSE stops capturing data. Unlike toggling data flow with the F4 key, using
+CLOSE does not allow you to resume data capture to that file.  You should
+CLOSE a file before switching disks, or before SENDing or TYPEing it.
+.
+.PT ROUTE (select characters to capture)
+usage: ROUTE source  (source = ALL, SENT, RECEIVED)
+default: ALL
+.BODY
+The ROUTE command allows you to capture only the incoming (received) or
+outgoing (sent) characters.  Changing ROUTE doesn't alter the capture
+file in any way; it only affects the fate of subsequent characters.
+.
+.PT PROTOCOL (set Xon/Xoff protocol)
+usage: PROTOCOL use  (use = OFF, SEND, OBEY, BOTH)
+default: OFF
+.BODY
+If PROTOCOL OFF is set, Telios will not send Xon/Xoff characters, and ignore
+received Xon/Xoff characters. PROTOCOL OBEY forces Telios to
+stop sending after reception of an Xoff, until a corresponding Xon is seen.
+PROTOCOL SEND should be set only if the host system obeys the protocol.  Telios
+will use Xon/Xoff to prevent buffer overflows if PROTOCOL SEND is in effect.
+When PROTOCOL BOTH is set, Telios will both obey and send Xon/Xoff.
+
+Telios is fast enough to almost never need
+to send an Xoff, unless you're capturing to disk at a baud rate above 2400,
+or printing to a slow printer, or go into command mode (F1 or F2) while
+receiving data.
+
+If PROTOCOL SEND has been set, Telios will send an Xoff when its internal
+buffer is 3/4 full, and send an Xon when its buffer is again less than
+1/4 full.
+.
+.SUBJ Defining your own commands
+Any command that isn't recognized is assumed to be the name of a file containing
+Telios commands.  Commands in a file should be used the same way
+they are used on the command line.  All commands, including the SEND
+command, may be used in a file.  Files may be chained (the name of one
+command file may appear in another) but not nested.  That is, when the
+second file finishes execution, control does not pass back to the first
+file. To set up a command file, we recommend the use of a text editor, such
+as the EDLIN program supplied with IBM DOS.
+
+One command file is always executed by Telios--when you start the program,
+the file STARTUP.TLS is executed.  This provides a convenient way to change
+the default settings.
+
+Errors in a command file do not halt execution.  An unrecognized command,
+however, will halt execution if a command file by that name cannot be found.
+
+A number of Telios commands are useful only in command files. 
+Descriptions follow.
+.
+.PT SLEEP  (delay execution of following commands)
+usage: SLEEP time  (time = tenths of a second, 0-255)
+.BODY
+SLEEP delays the execution of the next command in a command file.  
+
+One can achieve similar effects with the TCHAR and TWAIT commands.
+But unlike TCHAR and TWAIT, which set up the conditions for a future wait, SLEEP
+waits the specified time immediately, right when it is executed.
+Choose whichever method is appropriate.
+.
+.PT REMARK  (embed a comment in file)
+usage: REMARK comment
+.BODY
+REMARK ignores the comment and does nothing.  Comments are
+useful in command files to remind the reader of the file's purpose
+and actions.
+.
+.PT LIST (control display of commands)
+usage: LIST ON or LIST OFF
+default: ON
+.BODY
+If the LIST option is on, Telios displays each command in a command file
+as it is executed.  If LIST is off, no commands are displayed.  The setting
+does not affect the display of commands entered from the keyboard, nor
+does it affect the display of status messages.
+.
+.PT XSTRING  (send a string of characters)
+usage: XSTRING string  (string = characters to be sent)
+.BODY
+XSTRING sends a string of characters, just as if they had been entered at the
+keyboard.  This is most often used to
+control an autodial modem from a command file, or automatically
+log on to another system.  Note that no carriage return is sent at the
+end of the string unless explicitly specified.
+The string does not have to be enclosed in quote marks or otherwise delimited.
+
+Control characters can be embedded in the character string using the same escape
+sequences used with DEFINE.  The most commonly needed escape code 
+is ^^M (carriage return).
+.
+.PT The initialization file: STARTUP.TLS
+.BODY
+When Telios is first started, it looks for a file named STARTUP.TLS on
+the default disk drive.  The file is executed if found.  This is
+a convenient method of changing the default communications setup to your
+needs.
+.
+.SUBJ Modem control
+.BODY
+An intelligent modem, like the Hayes Smartmodem, can be controlled
+in several ways.  You can set up command files which whose XSTRINGs 
+send modem commands, you can define
+function keys, you can exploit the built-in DIAL command, or you can simply type
+the modem commands in conversation mode.  The 
+DISCONNECT and CONNECT commands are
+of more concern to those using a dumb modem.  These two commands turn on (and off)
+the "Data Terminal Ready" and "Request To Send" signals.  Turning off the signals
+causes these modems to hang up.
+
+When dialing from within a command file, using the Hayes Smartmodem, the 
+following sequence works nicely:
+.sp
+.nf
+.nj
+	REM set up for wait after dial (^^J = ASCII linefeed)
+	TWAIT 2
+	TCHAR ^^J
+	REM now dial the number
+	DIAL 555-1212
+	REM the commands to actually sign on would follow...
+.fi
+.ju
+.sp
+This sequence will dial the number, wait for the modem to send a linefeed, then
+wait for the line to be "quiet" for a tenth of a second before continuing.
+Once a number has been DIALed, subsequent DIAL commands don't need to specify
+it again--they will reuse the last number.
+
+If you choose this method, remember to reset TCHAR and TWAIT to the 
+appropriate values before SENDing a file.
+.
+.PT DIAL (send dial string to modem)
+usage: DIAL number (number is optional telephone number)
+.BODY
+The DIAL command simply sends the defined prefix, number, and suffix strings
+to the modem.  These strings may be defined using the DEFINE command, and the
+current definition listed using the F? command.
+
+The default prefix  ("AT DT") and suffix ("^^M") work with the Hayes Smartmodem;
+users of other intelligent modems need to change them.
+
+If the optional number is specified with the DIAL command, it becomes the
+"number" string.
+
+Since the default strings work with the Smartmodem, those users may simply
+.sp
+.nf
+.nj
+	DIAL 000-0000
+.ju
+.fi
+.sp
+to connect to the host.  You'll need to correctly specify the
+phone number, of course. 
+Don't be alarmed if the dial command appears ddoouubblleedd, like that, on the
+screen.  It's of no consequence.
+
+Many modems send confirmation messages after
+dialing.  These messages, typically "connected" or "no carrier," will also be
+displayed on the screen. 
+.
+.PT CONNECT (turn on DTR and RTS)
+usage: CONNECT
+.BODY
+The asynchronous adaptor's "Data Terminal Ready" and "Request To Send" signals 
+are turned on.  This command is needed only after a DISCONNECT--the signals
+are automatically turned on when Telios is started.
+.
+.PT DISCONNECT (turn off DTR and RTS)
+usage: DISCONNECT
+.BODY
+The asynchronous adaptor's "Data Terminal Ready" and "Request To Send" signals 
+are turned off.  This command is usually needed only 
+for forcing dumb modems to hang up.
+.
+.
+.SUBJ Special keys
+.
+.PT PgUp+PgDn+Home+End keys
+.BODY
+Telios remembers the characters that have scrolled off the top of the
+screen, and you can redisplay them with a press of the PgUp key.
+PgDn moves down a page, Home moves to the first page, and End moves 
+to the last page.  The up and down cursor keys move up and down one line.
+Typing a character when not on the last page automatically moves you to the end.
+Pressing Ctrl-Home clears the screen and the screen memory.
+.
+.PT Break (** F8 **)
+usage: press the F8 key (anytime)
+.BODY
+Pressing the F8 key sends an "attention" signal to the host computer.
+F8 is a redefinable key.
+.
+.PT Panic (** F10 **)
+usage: press the F10 key (anytime)
+.BODY
+Pressing F10
+stops
+a file send (if one is in progress), and stops the execution of a command
+file (if one is executing). Also stops TYPE command and stops SLEEP.
+If Telios is waiting for a turnaround character
+or Xon character, pressing F10 clears the wait.  F10 is a redefinable key.
+.
+.
+.PT Function keys
+.BODY
+The first two function keys (F1 and F2) are the permanently assigned
+Help key and Command Mode key. Keys F3 through F10, as well as the Enter
+and Backspace keys, can have character strings assigned to them.
+These character strings can include escape sequences representing control 
+characters and special Telios
+functions, such as "enter command mode" and "toggle the cap. file."
+.
+.PT DEFINE (define function keys; set dial strings)
+usage: DEFINE key string
+       key = 3,4,5,6,7,8,9,10, ENTER, BS, PREFIX, NUMBER, SUFFIX
+       string = character string
+.BODY
+The character string is assigned to the key, so that whenever the key
+is pressed the string is sent.  The dial strings are sent only by the DIAL
+command. Special functions and control characters are specified by embedded
+escape sequences.
+.ne 30
+.nf
+.PT Escape sequences for DEFINE, TCHAR, XSTRING
+
+	^^@ = cntrl-2 (0)
+	^^[ = cntrl-[ (27)
+	^^\ = cntrl-\ (28)
+	^^] = cntrl-] (29)
+	^^^^ = cntrl-6 (30)
+	^^- = cntrl-minus (31)
+	^^$ = blank (32)
+	^^! = ^^ (real ^^ character)
+	^^# = del (127)
+
+	^^A through ^^Z = cntrl-A through cntrl-Z
+
+common control characters:
+			^^M = carriage return (13)
+			^^J = linefeed (10)
+			^^G = bell (7)
+			^^H = backspace (8)
+			^^I = tab (9)
+			^^L = form feed (12)
+			^^Q = xon (17)
+			^^S = xoff (19)
+Telios functions:
+			^^1 = Panic
+			^^2 = Command mode
+			^^3 = Break
+			^^4 = Toggle cap file
+.fi
+.ne 25
+.PT Using special keys
+.nf
+Special keys and their effect:
+	F1 -- the HELP key
+	F2 -- move cursor to command line
+	F4 -- toggle flow to capture file (redefinable)
+	F8 -- the Break key (redefinable)
+	F10 -- the Panic key (redefinable)
+
+	PgUp -- roll the screen back one page
+	PgDn -- roll the screen forward one page
+	Home -- roll the screen back to the first page
+	End -- roll the screen forward to the last page
+	Uparrow -- roll the screen back one line
+	Downarrow -- roll the screen forward one line
+	Ctrl-Home -- clear screen and screen memory
+
+	Shift-PrtSc -- send current screen to printer
+	Ctrl-PrtSc -- toggle character flow to printer
+
+	Ins -- send ASCII linefeed (10) character 
+	Del -- send ASCII delete (127) character
+.fi
+.
+.SUBJ Setting the communications parameters
+.
+In order for Telios to communicate with another computer, various
+options have to be correctly set, that is, both Telios and the other
+computer have to be using the same settings.  Since the proper setup
+varies from computer to computer, we can't really give you specific
+instructions.
+While much of this can be learned by experimentation, it is essential to know
+the proper
+"baud rate," the speed with which the computers are going to send data.
+Both computers must use the same baud rate.
+This is just about always either 300 (sort of slow) or 1200 (rather fast)
+if you're using a modem.  If the host is connected directly without
+a modem, then the baud rate may well be higher.  
+Find out the proper 
+baud rate.
+
+.PT AUTOLF  (set automatic linefeed control)
+usage: AUTOLF ON or AUTOLF OFF
+default: OFF
+.BODY
+If AUTOLF is on, a single carriage return character moves the cursor down one line
+and to the left hand margin of the display.  If AUTOLF is off, a carriage return
+character just moves the cursor to the left hand margin; a separate linefeed 
+character is needed to move to the following line.  The setting does
+not affect what is sent to the host, only what appears on the screen.
+
+Remark: If AUTOLF isn't set correctly, you'll find lines writing over one another
+or double spaced.  
+.
+.PT BAUD  (set data transmission rate)
+usage: BAUD rate   (rate= 110,150,300,600,1200,2400,4800,or 9600)
+default: 300
+.BODY
+Use the BAUD command to set the line speed (baud rate) of the asynchronous
+communications adaptor (the hardware).  The number of stop 
+bits is automatically
+set by this command,
+2 for 110 baud, 1 for all other speeds.
+
+Remark: Setting the line speed does not affect any other
+communications parameters, e.g., it won't disconnect the phone line.
+If the rate is incorrectly
+set, you'll see a burst of errors, especially "Framing Errors," and text
+on the screen will be garbled and unintelligible.
+.
+.PT PARITY  (set parity checking)
+usage: PARITY type  (type= EVEN, ODD, MARK, SPACE, or OFF)
+default: EVEN
+.BODY
+The parity command changes the type of parity checking performed.
+If parity checking is set OFF, 8 data bits are used; all other
+parity settings use 7 data bits.  Be sure to set PARITY OFF if you
+transmit or receive binary data, such as executable files.  If a
+parity error is detected, a message is displayed.
+
+Remark: The PARITY setting is most often EVEN.  If you get constant 
+"Parity Error" messages in
+the Status area, play around with other settings until you find one that
+doesn't give errors. An occasional error is normal.
+.
+.PT ECHO  (set local or remote echo)
+usage: ECHO ON or ECHO OFF
+default: ON
+.BODY
+If ECHO is on, characters you type are displayed (echoed) on
+the screen by Telios. If it is off, the responsibilty for showing the
+characters lies with the host computer.  ECHO ON is sometimes called
+"half-duplex operation," and ECHO OFF is called "full-duplex operation."
+
+Remark: If ECHO isn't right, characters you type will either
+appear twice or not at all.
+.
+.PT FILTER  (delete control characters)
+usage: FILTER ON or FILTER OFF
+default: ON
+.BODY
+The FILTER deletes (filters) received control characters and non-text characters.
+If filter is on, then only the ASCII Bel (7), Backspace (8),
+Tab (9), Linefeed (10), Form Feed (12),
+Carriage return (13), and text characters are displayed
+on the screen, printed, and captured.  If the filter is off, all characters
+are shown, printed and captured.  In addition, turning the filter off makes
+control characters appear on the screen as graphic characters--they do not
+have their usual effect (the screen will look like a mess if you turn the
+filter off).
+
+Characters typed on the keyboard are not affected by the filter.
+If a file is being sent (uploaded), and filter is on, then linefeed characters
+are deleted (not sent), to preserve the parallel with a user hitting carriage
+return at the keyboard. 
+
+File sending stops when an ASCII 26 character (DOS end
+of file marker) is seen in the file, if the filter is on.  The whole file, based
+on the file size, is sent when the filter is off.
+
+Remark: You'll want to keep the filter on except when transferring files
+containing 8-bit or binary data.  Then turn the filter off, and be sure to set
+PARITY OFF as well.
+.
+.SUBJ Setting up cables and modems
+.
+Telios works with all IBM compatible asynchronous adaptors and
+modems that we know of (including the Hayes Smartmodem(tm)).  We suggest you
+use a modem cable that connects pins 2 through 8, and pins 20 and 22.  This 
+ensures
+compatibility with other modems, and software. This should be a "straight" cable,
+that is, the wires should connect each pin with the corresponding pin on the other 
+end.  If you are hooking the PC directly to another piece of equipment that is
+wired as Data Terminal Equipment (DTE), such as another PC, you'll need a
+cable that crosses pins 2 and 3, 4 and 5, 6 and 20.
+
+You do not need to change the factory settings on the Hayes Smartmodem.
+.
+.SUBJ Managing your disk files
+.
+.PT DIR (list files)
+.BODY
+The DIR command, just like its DOS equivalent, lists the names of your disk
+files.  You can use the same options as in DOS: no option lists files
+on default disk, a drive identifier (e.g. B:) lists files on that drive,
+or give it filenames with "*" and "?" characters to list specified files.
+The DOS "/P" and "/W" options are not supported.
+.
+.PT TYPE (type contents of file on screen)
+.BODY
+TYPE displays the contents of a file on the screen.  You can scroll (page)
+through the display, but the displayed characters don't get
+sent to the printer, the host, or the capture file.
+.
+.PT ERASE (erase a file)
+.BODY
+ERASE erases a file or group of files. Wildcard characters ("*" and "?") may
+be used, but Telios will not allow ERASE *.* (you can't erase all files
+on a disk with one command).
+.
+.SUBJ Control characters
+.
+Telios can send any control character from the keyboard, any function key, XSTRING,
+the dial strings.  Control characters in a file are controlled by the filter.
+
+Telios interprets (executes) the Bell (7), Backspace (8), Tab (9),
+Linefeed (10), Form Feed (12), and Carriage return (13) control characters.
+Tabs are set at every 8 positions; a received Form feed clears the screen. A
+sent Form feed clears both the screen and the screen memory.
+.
+.SUBJ Using commands
+.BODY
+Telios commands are used to control the communications link, as well as 
+send and
+capture data.  To execute a command, press F2 to move the cursor to
+the command line, then type the command and press the Enter key.
+Pressing F1, the Help key, also moves the cursor to the command line.
+
+Telios is in command mode (ready for you to type a command) whenever the ">" symbol appears
+in the bottom left of the screen.  You'll also see the "Ready for command"
+message at the bottom right.
+
+While in command mode,
+the large Backspace key (left pointing arrow at top right of keyboard)
+deletes the last character and backs up the cursor.
+
+Telios commands and options can be abbreviated to the first two letters, but
+everything you type is checked. "SEND" is not the same as "SEEK," although
+the first two letters are the same. The DIAL, DISCONNECT, and DIR commands
+can be abbreviated to three or more letters, but not two.
+
+Commands that are not recognized are assumed to be the names of command files
+to be executed.
+
+Command lines from the keyboard can be up to 35 characters long.  Lines in
+a file may be up to 255 characters long.
+.
+.
+.
+.
+.CHAPTER Problem Solving 
+.
+.SUBJ Nothing happens
+.
+When the program appears to be stuck, Telios
+is either waiting for an Xon character or a turnaround character to be
+sent by the host.  Press the Panic key (F10) if you want to continue.
+Be warned that
+this will stop any file transfer, although it puts you back in control.
+.
+.SUBJ Double characters; no characters
+.
+If typed characters aappeeaarr ttwwiiccee, like that, then set
+ECHO OFF.  If they don't appear at all, then set ECHO ON.  If it looks ok,
+it is ok.
+.
+.SUBJ Double spacing; no spacing
+.
+If lines appear to be double spaced, be sure AUTOLF is off.  If lines are
+"no-spaced," i.e., lines are overwriting one another, set AUTOLF on.
+.
+.SUBJ Losing incoming characters
+.
+Telios is designed to accept characters at speeds up to 9600 baud, but there
+are a couple of ways characters can be lost.  If you are echoing characters
+to the printer, and the printer is slower than the modem, you can (after a
+while) overflow the internal buffer.  Similarly, the screen can only display
+characters at about 4000 baud, so faster speeds may cause the buffer to overflow.
+If you're capturing to disk, the same thing can happen.
+The general rule of thumb is that characters will never be lost at 2400
+baud or less, unless a slow printer is turned on.
+
+At high speeds, you should set PROTOCOL SEND if the host computer supports
+the Xon/Xoff protocol.  
+If the protocol is in use,
+you will never lose characters
+--even if the
+printer is slow or you're capturing to a file.
+We do
+not know of any system that uses baud rates over 1200 and
+.ul
+does not
+support Xon/Xoff, so character loss is in fact no more than 
+a remote possibility.
+
+.SUBJ Losing characters while uploading
+.
+The host computer generally can not accept characters as fast as Telios can
+send them.  You must, therefore, "throttle" the sending to ensure that
+characters are sent only when the host is ready.  The discussion of uploading
+in Chapter 3 covers the available methods.
+.
+.SUBJ Garbled characters
+.
+If characters are totally unintelligible, come in short spurts (not smoothly),
+and are accompanied by framing and parity errors, then 
+the baud rate is incoreect.  If you get occasional garbled characters, it's probably
+just a bad phone connection.  If you get readable text but lots of other,
+graphic characters as well, you probably have the filter turned off.
+.
+.SUBJ TWAIT or TCHAR not working
+.
+You are probably setting TCHAR or TWAIT too late.  Remember that these commands
+do not actually wait for anything; they simply set up a wait that is 
+later triggered by sending a carriage return character.
+.
+.SUBJ The last resort
+.
+If it's just too confusing (or doesn't work the way it should), give us a call.
+We're in Washington, DC. (202) 296-8218  Business hours, Eastern time.
+.
+.CHAPTER Status Messages
+.ERR Autolf turned on/Autolf turned off
+Command confirmation.
+.ERR Baud rate set to ...
+Command confirmation.
+.ERR Break signal received
+Telios sensed a break in the communications line.
+.ERR Buffer nearly full
+The receive buffer is 2/3 full. You are in danger of losing incoming characters.
+.ERR Buffer has overflowed
+You have definitely lost some incoming characters.  See discussion of problem in
+Chapter 4.
+.ERR Capture to file started
+Data is being sent to disk file.
+.ERR Capture to file stopped
+Data will no longer be sent to disk file.
+.ERR Character overrun detected
+A character arrived before the previous one could be read.  In theory, this
+should
+never happen.  Nevertheless, it does happen when using some print 
+spooling programs which are
+improperly written.  The print spooler is
+disabling interrupts for too long.
+.ERR Command option missing
+Telios expected more command options.  You're leaving something out.
+.ERR Data capture resumed
+Data capture is toggled back on.  Characters are going to file.
+.ERR Data capture suspended
+Data capture toggled off.  No characters are going to file.
+.ERR Data error
+The data on the disk was unreadable.  The disk is probably bad, but sometimes
+one can read it on another drive, sometimes jiggling the disk a bit and reinserting
+it clears things up.  Hope you made a backup.
+.ERR Disk full
+There is no more room on disk.  If a capture file was active, it has been
+closed.  Use the DIR and ERASE command to see if there are unneeded files
+that you can erase to make more room.
+.ERR Disk is write protected
+You tried to write on a disk that has a write protect sticker on it.  Check
+to make sure you have the right disk, and remove the sticker if necessary.
+.ERR Drive not ready
+The disk drive door is open. Close it and try again.
+.ERR Echo turned on/Echo turned off
+Command confirmation.
+.ERR End of file
+The TYPE or SEND command has reached the end of the file.
+.ERR Erased Ok
+The specified file was successfully erased.
+.ERR Executing command file...
+Telios is executing commands from a command file.
+.ERR File close failed
+DOS was unable to close a file.  Your disk is probably too full. 
+.ERR File directory full
+You have too many individual files on the disk.  Erase some to make room.
+.ERR File not found
+The file you specified is not on disk.  Remember that Telios assumes that
+any command it doesn't recognize is the name of a command file, so perhaps
+you simply mistyped a command name.
+.ERR Filter turned on/Filter turned off
+Command confirmation.
+.ERR Framing error detected
+An incoming character was improperly framed.  Ususally, this means you're
+using the wrong baud rate.  An occasional framing error (especially when
+starting up, or turning the modem off) is no cause for alarm.  However,
+the one character that caused the error was probably garbled.
+.ERR General disk failure
+Your disk is bad.  Try another.
+.ERR Global erase not allowed
+Telios will not allow you to erase every file on a disk in one fell swoop.
+.ERR Incorrect filename
+The filename you specifed doesn't follow the DOS rules for a legal filename.
+.ERR Incorrect command option
+The specified command option (that's everything after the command name) was
+not recognized.  Check to make sure you're not mistyping.
+.ERR Internal error 
+You have discovered a bug.  Write down the full text of the message and
+what you did just before you got the message, then contact us so we can
+fix the problem.  Thank you.
+.ERR Invalid drive specified
+You specified a drive identifier for a nonexistent disk drive.
+.ERR Line connected
+The communications line changed from disconnected to connected.
+.ERR Line disconnected
+The communications line changed from connected to disconnected.
+.ERR No active capture file
+You tried to toggle off data flow to file, but there isn't an open capture
+file.  Nothing happens.
+.ERR Not accepted--waiting for XON
+The host computer sent an Xoff character, a signal for Telios to stop sending.
+Telios is now waiting for an Xon character.  The character  you 
+typed was ignored.
+If you want to ignore the Xoff
+and send anyway, press the Panic key (F10), then resume typing.
+.ERR Obey Xon/Xoff signals from host
+An Xoff character from the host will stop Telios from sending until a
+corresponding Xon is received.  Telios will not send Xon/Xoff signals to the
+host.
+.ERR Ok
+Command confirmation.  The command worked.
+.ERR Parity error detected
+An incoming character had an improper parity bit.  This may mean the character
+is garbled (not what was sent).  If you get a flurry of these errors, you
+are probably using the incorrect parity setting.
+.ERR Parity set to .../Parity checking turned off
+Command confirmation.
+.ERR Printer started
+Characters will be echoed to the printer.
+.ERR Printer stopped
+No characters will be echoed to the printer.
+.ERR Ready for command
+You just entered command mode.
+.ERR Remember: Press F1 for HELP!
+Just a reminder.
+.ERR Routing all chrs. to file
+All characters will be routed to the capture file, if active.
+.ERR Routing received chrs. to file
+Only characters received from the host will be captured.  Other characters
+appear on the screen, but won't be captured.
+.ERR Routing sent chrs. to file
+Only characters sent to the host will be captured.  Other characters will
+appear on screen, but not in the file.
+.ERR Seek error
+Either your disk or disk drive hardware may be bad.
+.ERR Sector not found
+Your diskette is bad, or you may be using a double-sided diskette in a 
+single-sided drive.
+.ERR Sending file...
+The SEND command is working.
+.ERR Sleeping...
+Siesta time. A SLEEP command is executing.
+.ERR Turnaround character set
+Telios will now wait for that character before sending each line (from file
+or XSTRING).
+.ERR Turnaround chr. checking stopped
+Command confirmation.
+.ERR Turnaround wait time set
+Command confirmation.  Telios will now wait after sending a carriage return from file
+before resuming transmission.
+.ERR Too many command options
+You specified more command options (more things on the command line) than
+Telios expected.  Check that the options are correct, and that you didn't
+type any extra spaces.
+.ERR Typing file...
+The TYPE command is working.
+.ERR Unknown command
+The specified command was not recognized.  Currently, that means you said
+"DI" and Telios didn't know whether you meant DIAL, DISCONNECT, or DIR.
+Use at least three letters for the DI... commands.
+.ERR Waiting for turnaround chr.
+TCHAR is enabled, and Telios just sent a carriage return character from a file
+or the XSTRING command.  Telios will now wait for the "turnaround character"
+before resuming transmission.
+.ERR Write fault
+Nasty disk error.  Your disk is probably bad.
+.ERR Xoff sent (buffer nearly full)
+The buffer was 2/3 full, and Telios sent an Xoff to the host to signal
+it to stop sending.
+.ERR Xon sent (buffer nearly empty)
+The buffer isn't full anymore, and Telios sent an Xon to the host to 
+resume transmission.
+.ERR Xon/Xoff in use by host+Telios
+Telios will obey received Xon/Xoff signals, and send them to prevent
+internal buffer overflows, if necessary.
+.ERR Xon/Xoff protocol not in use
+Telios will not send Xon/Xoff signals, and ignore those received from the host.
+.ERR Xon/Xoff sending enabled
+Telios will send Xon/Xoff signals to the host to prevent buffer overflow,
+if necessary.  Telios 
+.ul
+is not
+obeying received signals.
+.fi
+.
+.CHAPTER The ASCII Character Code
+.
+.nf
+.nj
+Number	Name	Escape sequence		Keyboard
+0	null	^^@			ctrl-2
+1	soh	^^A			ctrl-A
+2	stx	^^B			ctrl-B
+3	etx	^^C			ctrl-C
+4	eot	^^D			ctrl-D
+5	enq	^^E			ctrl-E
+6	ack	^^F			ctrl-F
+7	bel	^^G			ctrl-G		(bell)
+8	bs	^^H			ctrl-H		(backspace)
+9	ht	^^I			ctrl-I		(tab)
+10	lf	^^J			ctrl-J		(linefeed)
+11	vt	^^K			ctrl-K
+12	ff	^^L			ctrl-L		(form feed)
+13	cr	^^M			ctrl-M		(carriage return)
+14	so	^^N			ctrl-N
+15	si	^^O			ctrl-O
+16	dle	^^P			ctrl-P
+17	dc1	^^Q			ctrl-Q		(Xon)
+18	dc2	^^R			ctrl-R
+19	dc3	^^S			ctrl-S		(Xoff)
+20	dc4	^^T			ctrl-T
+21	nak	^^U			ctrl-U
+22	syn	^^V			ctrl-V
+23	etb	^^W			ctrl-W
+24	can	^^X			ctrl-X
+25	em	^^Y			ctrl-Y
+26	sub	^^Z			ctrl-Z
+27	esc	^^[			esc		(escape)
+28	fs	^^\			ctrl-\
+29	gs	^^]			ctrl-]
+30	rs	^^^^			ctrl-6
+31	us	^^-			ctrl-minus
+32	space	^^$			space bar	(space)
+127	del	^^#			Del		(delete)
+
+.bp
+Printing characters:
+
+33	!		64	@		95	_
+34	"		65	A		96	`
+35	#		66	B		97	a
+36	$		67	C		98	b
+37	%		68	D		99	c
+38	&		69	E		100	d
+39	'		70	F		101	e
+40	(		71	G		102	f
+41	)		72	H		103	g
+42	*		73	I		104	h
+43	+		74	J		105	i
+44	,		75	K		106	j
+45	-		76	L		107	k
+46	.		77	M		108	l
+47	/		78	N		109	m
+48	0		79	O		110	n
+49	1		80	P		111	o
+50	2		81	Q		112	p
+51	3		82	R		113	q
+52	4		83	S		114	r
+53	5		84	T		115	s
+54	6		85	U		116	t
+55	7		86	V		117	u
+56	8		87	W		118	v
+57	9		88	X		119	w
+58	:		89	Y		120	x
+59	;		90	Z		121	y
+60	<		91	[		122	z
+61	=		92	\		123	{
+62	>		93	]		124	|
+63	?		94	^^		125	}
+						126	~	
+.fi
+.ju
+.CHAPTER Comments, Gripes, and Praise
+We want to know what you think of Telios, what you like and don't like, and
+how we should improve it.  Drop us a note, or call.
+.nf
+.nj
+.sp
+Circle Micro
+P.O. Box 33634
+Washington, DC 20033-0634
+(202) 296-8218
+.sp 4
+Comments:
+.fi
+.ju
+.he ////
+

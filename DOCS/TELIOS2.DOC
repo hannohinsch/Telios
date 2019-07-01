@@ -1,0 +1,59 @@
+.nj
+.nf
+Here's a list of features new in Telios version 2.
+
+First off, there's XMODEM support.  It works like this:
+
+PSEND <filename>
+Psend sends a file using xmodem.
+
+PCAPTURE <filename>
+Pcapture captures a file using the xmodem protocol.
+
+These commands work like CAPTURE and SEND in other respects.
+Xmodem transfers are a bit different in one other respect: you
+can set the number of retries, and the timeout length (in tenths
+of a second) using the RETRIES and TIMEOUT commands,
+respectively.
+
+The second major feature is what I call "triggers." A trigger is
+a predefined string, just like a function key string, except that
+the string is executed if a certain event triggers that string.
+The trigger strings are defined using the DEFINE command; the
+following triggers are new:
+
+ANSWERBACK triggered by receipt of the ASCII answerback character
+RING triggered by modem ring indicator line
+CONNECT triggered by a change in carrier signal from OFF to ON
+DISCONNECT triggered by a change in carrier signal from ON to OFF
+COMMAND triggered by an error in a Telios command
+CHAR triggered by a receive error: parity, framing, or overrun error
+TIMEOUT triggered (while not using XMODEM) by nothing happening for the
+	timeout period
+BREAK triggered by receipt of a break signal
+PROTOCOL triggered by reaching protocol retry limit
+
+Triggers are incredibly useful in controlling the progress of a
+session.  No other communications package has anything like them.
+
+In addition to triggers, there are two new defined strings:
+SPREFIX a string that is executed upon starting a file send --
+	   useful for starting a mainframe editor, for example
+SSUFFIX a string executed after a send has finished -- useful for
+	  closing the editor
+
+There's also limited escape sequence support:  I'm going to put
+in the stuff that NIH wanted.  You'll be able to use all
+available memory for scrolling.
+
+The STORE <filename> command will store the characters in the buffer in
+<filename>.
+
+The COLOR <foreground,background,hilite,error-foreground,error-background>
+command will change screen color.
+
+The PORT <1 or 2> command will change async ports.
+LIST OFF will be default in command files.  The MSG <text>
+command displays <text> on the tube, regardless of
+the LIST setting.
+

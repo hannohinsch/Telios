@@ -1,0 +1,471 @@
+.ce
+.bd
+Overview of Telios 2x54
+.sp
+.he //- # -//
+.nj
+.ul
+A. Miscellaneous changes
+
+1. Shifted function keys can be defined. Use the DEFINE command;
+the shifted keys are specified by S1,S2,S3...S10.
+
+2. There are now two pages of string definitions and status
+screens, and seven help screens.
+
+3. The RECEIVE and PRECEIVE commands have been added as synonyms for CAPTURE
+and PCAPTURE.  The old commands still work.
+
+4. The "Ins" key no longer transmits a Linefeed; use ctrl-J instead.
+
+5. The "Del" key no longer transmits an ASCII Del char (127); use
+ctrl-Backspace instead.
+
+6. The COLOR command now takes a sixth option, the screen
+border color.  Previous versions used the same value for both
+background and border.
+
+.ul
+B. File system interface
+
+1. Telios now requires DOS version 2.00 or later.
+
+2. All commands that expect filenames accept DOS 2.00 pathnames
+as well.
+
+3. Added file commands:
+.br
+RENAME oldname newname
+(rename a file)
+.br
+CDIR directory
+(change current directory)
+.br
+DRIVE drive:
+(change current drive; note required colon)
+.br
+
+4. When Telios creates a file (on CAPTURE, SAVE, or whatever), if a file
+by that name already exists, then the existing file is renamed (the extension
+is changed to start with a tilde) rather than overwritten.
+
+.ul
+C. Paging
+
+1. To scroll up and down one line at a time, use ctrl-PgUp and ctrl-PgDn
+(the cursor keys are now used for terminal emulation)
+
+2. To clear screen memory, use the CLEAR command; ctrl-Home no longer works.
+
+3. ** NIFTY NEW FEATURE ** ==> The STORE command (syntax:
+STORE filename) will store the contents of screen memory in a
+file.
+Everything from the first line you see on the screen at the time
+the command is given (use the paging keys to
+control this)
+to the end of screen memory (where the End key would take you) is stored in the
+file.  Trailing blanks are stripped from every line.
+.bp
+.ul
+D. Command files
+
+The new commands make Telios powerful enough to build a complete, robust,
+menu-driven system.  It's the best on the market.
+
+Command files now allow such nifty things as conditional execution, querying
+the user during command file execution, and sophisticated transactions with
+the host.
+
+.bd
+0. Miscellaneous
+
+The DOPROC command is like the DO command, except that when the
+executed file finishes, control returns to the calling file (DO
+just stops, without returning).  A file executed by a DOPROC
+cannot in turn execute another DOPROC, i.e. nesting is not
+allowed.
+
+Lines starting with a semicolon (;) are ignored (like REMARKS).
+
+The CLS command clears the screen (useful for menus).
+
+The BEEP command does just that.
+
+.bd
+1. Branching
+
+A label is a line that starts with a dash (-), followed immediately (no blank)
+by some character string (up to 30 characters).  Nothing else can be on that
+line.
+
+GOTO -label
+.br
+Transfers control to the statement after -label.  Telios searches for the
+label from the point of the goto.  Labels may appear in the file before the
+goto (you can jump backwards).
+
+IF ONLINE -label
+.br
+IF OFFLINE -label
+.br
+Branch to -label depending on Carrier Detect.  Remember that modem switches
+may have to be set to make the Carrier Detect line reflect the true state
+of things.
+
+.bd
+2. The input queue
+
+Telios now has an "input queue", a queue of words which allow you
+to pass command options to command files and get user
+input from the keyboard.
+
+The input queue consists of words, separated by blanks.  Words are placed in
+the queue by QINPUT, or by invoking a command file with words past the
+filename.  For example, the command
+
+.ti 5
+DO LOGON NIH 1200 FOO
+
+will place the
+three words (NIH 1200 FOO) into the queue and execute the
+"logon.tls" command file.
+
+The sequence ^^2, when encountered in a command file, is replaced
+by the next word in the queue before the line is executed.
+The resulting line is then
+executed, and the word deleted from the front of the queue.
+If no word is available, ^^2 is replaced by
+nothing, but no error occurs.
+
+One caution: ^^2 substitution takes place on comment lines, too.
+Thus a remark like
+
+.ti 5
+REM In the following line, ^^2 is the baud rate
+
+would "use up" the first word in the queue, although you probably
+didn't want that to happen.
+
+The input queue is cleared when you start a command file from the keyboard;
+thus the words following the filename (if there are any) will be the first
+words in the queue.  The queue is  n o t  cleared when a DO command is executed
+from within a command file; any words will be appended to
+whatever words are already in the queue.
+
+Although the principal use of the feature is accepting keyboard
+input, this
+text substitution can be put to several non-obvious uses.  You
+can mimic
+subroutines be putting the label to return to in the input queue, and then
+doing a GOTO ^^2; you can execute a loop a certain number of times by putting
+the counter into the queue, and then use QFLUSH and QCHECK to
+decrement and check on the number of words in the queue.
+
+Here are the commands that deal with the input queue:
+
+QINPUT
+.br
+This command, without an option, gets keyboard input
+(any number of words).
+
+QINPUT ZOO GOO FOO
+.br
+If QINPUT has options, they are placed in the queue.  No
+keyboard input is expected.
+
+QFLUSH gets rid of words in the queue.	Without an option, it
+empties the queue.
+With a numeric option, it gets rid of that number of words,
+beginning with the first word in the queue.
+
+QCHECK min max -label
+.br
+If there are either more than <max> or less than <min> words in the queue,
+QCHECK will branch to the label.
+
+QMATCH string -label
+.br
+Looks for <string> in queue, and branches to label if found. <string> cannot
+contain blanks, and is assumed to be a word.  If <string> is a proper
+abbreviation of some word in the queue (e.g. "good" is proper abbreviation
+of "goodies"), that too will cause branch.  The match is not case sensitive.
+
+QVALUE command
+.br
+Places the current value of a setting (like a function key, or
+the baud setting) into the queue. Examples:
+.br
+     QVAL BAUD	  (puts current baud rate into queue)
+.br
+     QVAL F10	  (puts contents of function key 10 into queue)
+.br
+Note that to get the value of a string you do not need to put
+"DEFINE" into the QVAL option list, just the name of the
+string you want.
+.bp
+.bd
+3. Transactions with host (and smart modems)
+
+**** This is the most powerful new feature in Telios! *****
+
+A transaction allows you to send a string to the host, wait for the response,
+and branch to different labels depending on what the host sends back.  There
+are three parts:
+
+TRBEGIN signals the start of a transaction.  Telios stops processing characters
+received from the host (they are simply saved in a buffer until later), and
+clears the TRCASE strings.
+
+TRCASE string -label
+.br
+This command sets up a "case".  If <string> is later received, then
+Telios branches to the matching label.	There can be up to ten TRCASE
+statements within a TRBEGIN/TREND block.  <string> can contain no blanks,
+but it can contain any of the "entry sequences" (^^A,^^M, etc.).
+
+If you
+include the entry sequence for a blank (^^$), then any amount of white space
+in the received data will match that "^^$".  In other words, two tabs will
+match just as well as one blank.  The match is not case sensitive.
+
+TREND timeout (timeout is in seconds)
+.br
+After Telios executes the TREND command, (1) stops executing the command file,
+and (2) resumes processing characters from the host,
+all the while looking for a match with one of the TRCASE strings.  If no match
+is found within the timeout interval, Telios will continue execution of the
+command file.  If a match is found, Telios branches to that label and continues
+from there.
+
+
+.bp
+.nf
+A simple example of a transaction:
+
+; first, TRBEGIN starts the transaction
+TRBEGIN
+;
+; now send something to the host
+XSTRING LOGON HANNO
+;
+; now prepare for the possible host responses
+TRCASE bad^^$password -BAD
+TRCASE welcome -GOOD
+TRCASE host^^$not^^$available -NOHOST
+;
+; now finish transaction (waiting up to 15 seconds for host response)
+TREND 15
+;
+; if we get here, we timed out (no TRCASE string matched)
+MSG *** No response from host
+GOTO -EXIT
+;
+; below, you would put the various labels and whatever
+-GOOD
+msg blah blah blah
+GOTO -EXIT
+;
+-BAD
+MSG blah blah blah
+GOTO -EXIT
+;
+-NOHOST
+MSG blah blah blah
+;
+-EXIT
+.fi
+.
+.nf
+.bp
+A command file that implements a simple menu:
+.sp
+-menu1a
+	Cls
+	Msg	      -- Main menu --
+	Msg 1 Dial the host
+	Msg 2 Return to DOS
+	Msg
+	Msg	  Type the number corresponding to your choice,
+	Msg	  then press the Enter key:
+-menu1b
+	Qflush
+	Qinput
+	Qcheck 1 1 -menu1c
+	Qmatch 1 -dial
+	Qmatch 2 -quit
+;
+-menu1c
+	Msg
+	Msg *** Unexpected response!
+	Msg *** Type the number corresponding to your choice,
+	Msg *** then press the Enter key...
+	Goto -menu1b
+	;
+ ;    Dial the host (Auto-dial if we can, else ask the user to do so)
+ -dial
+	Qflush
+	Qval prefix
+	Qmatch AT -dial_ok
+	Msg
+	Msg ### Auto-dial not available.
+	Msg ### Dial the host, press Enter when ready to proceed...
+	Qinput
+	Goto -exit
+	;
+       -dial_ok
+	Msg ### Dialing...
+	;  Modem transaction
+	Trbegin
+	Dial
+	Trcase no^^$carrier -no_good
+	Trcase connect -exit
+	Trend 30
+	;
+	Msg *** No response from modem
+       -no_good
+	Msg *** Connection NOT established
+	Msg
+	Msg ### Press Enter key to return to menu
+	Qinput
+	Goto -menu1a
+	;
+;     Quit - return to DOS without severing connection
+-quit
+      Quit
+-exit
+.fi
+
+.bp
+.ul
+E. Terminal emulation
+
+Telios now emulates all of a VT52 and most of a VT100, with a few
+enhancements.
+
+1. The TERM command sets the desired terminal emulation (OFF, VT52, VT100).
+
+2. The TAB command allows you to set tab stops.  This works in all modes,
+not just VT100 and VT52 emulation.  The second status screen has a tab ruler
+for your perusal.
+
+3. The CURSOR command controls the action of the cursor keys.  If
+CURSOR SEND is set (the default), then the keys send the appropriate
+control sequence to the host.  IF CURSOR LOCAL is set, they act only locally.
+The local action is also dependent on the state of the ECHO setting:
+If ECHO is on, then the keys move the cursor around the screen.
+
+4. The WINDOW command lets you control which part of the screen
+will be used.  The rest of the screen is not updated.  The effect
+is exactly the same as setting the scrolling region on a VT100.
+For example, after executing the command
+
+.ti 5
+WINDOW 5 10
+
+only lines 5 through 10 would be used to display text. (Lines are
+numbered from 0 to 23).
+
+5. VT notes
+
+**** READ THIS (if you're going to use terminal emulation)
+
+The VT100 and VT52 are physically quite different from the PC.	This section
+describes how Telios handles those differences.
+
+The VT function keys (F1, F2, F3, F4) are mapped to Alt-1, Alt-2, Alt-3, Alt-4.
+This allows the PC's function keys to be definable even in VT modes.
+
+The VTs have a numeric keypad separate from the cursor keys.  The PC does not.
+To emulate the VT keypad, toggle NumLock.  The numeric keys will now
+act just like the
+VT keypad.  For the four other VT keypad keys:
+.br
+VT keypad dash (-) --> use PC ScrollLock key
+.br
+VT keypad comma (,) --> use PC keypad minus (-) key
+.br
+VT keypad Enter --> use PC keypad plus (+) key
+.br
+VT keypad period (.) --> use PC period (Del) key
+.br
+
+To use the cursor keys, you can toggle NumLock again and use the
+PC cursor keys directly, or use the following equivalent keys
+(NumLock doesn't affect these):
+.br
+VT cursor up --> PC alt-9
+.br
+VT cursor down --> PC alt-0
+.br
+VT cursor left --> PC alt-minus (-)
+.br
+VT cursor right --> PC alt-equal (=)
+
+.bp
+Unimplemented features:
+.br
+First, unimplemented VT100 features that I intend to add:
+.br
+.nf
+LNM -- set newline mode (like Telios AUTOLF)
+DECREPTPARM -- report terminal parameters
+DECREQTPARM -- request terminal parameters
+.fi
+
+Next, VT100 features which I don't want to (or can't) implement:
+.nf
+
+DECARM -- keyboard autorepeat mode
+DECALN -- screen alignment display
+DECCOLM -- 80/132 column switch
+DECINLM -- interlace mode
+DECSCLM -- smooth scroll
+DECSCNM -- screen mode (reverse video)
+DECDHL -- double height line
+DECDWL -- double width line
+DECLL -- load LEDs
+DECSWL -- single width line
+DECTST -- self test
+SCS -- select character set
+
+.fi
+.br
+Other VT100 differences:
+.br
+Telios does not treat ASCII 11 and 12 as Linefeed chars.
+Telios does not switch character sets upon receipt of ASCII SO or SI chars.
+Telios has a destructive backspace (ASCII 8).
+
+VT52 differences:
+.br
+Telios does not support the graphics character set.
+
+Additional features in VT100 mode (for NIH):
+.br
+These features are "ANSI-compatible" and should not interfere
+with VT100.
+.br
+.nf
+ESC [ 1 }   (sets screen mute)
+ESC [ 0 }   (sets screen normal)
+
+ESC [ 2 h   (locks keyboard)
+ESC [ 2 l   (unlocks keyboard)
+	^^--that's a lowercase L, there, folks
+.fi
+
+
+.ul
+F. Ring and Answerback
+
+1. If the modem ring indicator is active, Telios will execute
+the Ring string,
+which can be set with the DEFINE command (this doesn't work just
+yet).
+
+2. If Telios receives an ASCII ENQ (5) character, it will send
+the contents of the
+answerback string, which can be set with the DEFINE command.
+(this works, I think).
+
+

@@ -1,0 +1,80 @@
+.nj
+Two new commands in version 2x08:
+
+Use the DATA <text or binary> command to select which type of file you're
+sending.  Makes a difference in how Telios detects the end of file.  This
+used to be a side effect of the filter command, but I think this is better.
+
+The CHATTER <on, off, debug> command controls the style of messages you
+get during a protocol transfer. "ON" is the default -- that's a running
+count of packet numbers sent/received.	"DEBUG" is mostly for my
+purposes, but users may find it useful.
+
+
+Here's a list of features new in Telios version 2x05.
+
+First off, there's XMODEM and KERMIT support.  It works like this:
+
+PSEND <filename>
+Psend sends a file using xmodem/kermit.
+
+PCAPTURE <filename>
+Pcapture captures a file using the xmodem/kermit protocol.
+
+These commands work like CAPTURE and SEND in other respects.
+Xmodem/kermit transfers are a bit different in one other respect: you
+can set the number of retries, and the timeout length (in tenths
+of a second) using the RETRIES and TIMEOUT commands,
+respectively.
+
+You don't need to change parity or filter when using XMODEM; that's done
+automatically (and is also restored upon completion).
+
+You DO need to set parity and filter correctly when using kermit.
+
+Note also the PROTOCOL command, which no longer controls Xon/Xoff signals.
+Instead, use it to choose between the XMODEM and KERMIT protocols.
+Kermit works like XMODEM, as long as the host understands Kermit, of course.
+
+The FLOW command now sets Xon/Xoff control, and has the same parameters that
+PROTOCOL used to have, namely SEND, OBEY, BOTH, or OFF.
+
+Other useful commands:
+
+The COLOR <foreground,background,hilite,error-foreground,error-background>
+command sets screen colors.
+
+The PORT <1 or 2> command  changes async ports.
+
+The MSG <text> command displays <text> on the tube, regardless of
+the LIST setting.  Useful in command files.
+
+LIST OFF is now the default.  Commands in command files are not displayed
+unless you turn LIST ON.
+
+The SCREEN command controls the format of displayed control characters.
+If you want to see control characters, set SCREEN GRAPHIC; SCREEN MUTE
+turns display off--useful when transferring binary files which tend to look
+like garbage. SCREEN NORMAL (the default) restores everything.
+
+If you have either (or both) TWAIT or TCHAR set, then the WAIT
+command triggers a wait, just like sending a carriage return.  This
+is useful when you want to delay execution of the next command in a
+command file, but don't want to send a carriage return just now.
+
+ .TLS is now the default file extension for the DO and SAVE commands.  That
+means, for example, to execute the file STARTUP.TLS you need to type only
+"DO STARTUP" -- the .TLS is assumed.  Similarly, to save STARTUP.TLS you
+need only type "SAVE STARTUP". Specifying an extension overrides the default;
+specifying the dot (.) without an extension means the file doesn't have an
+extension.
+
+Command file execution now stops when an error is encountered.	Useful for
+debugging.
+
+If you type a command from the keyboard, and the command doesn't work, then
+the command line is not erased.  This gives you a chance to see and correct the
+error with minimal effort.
+
+Control characters are ignored in command mode.
+
