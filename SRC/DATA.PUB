@@ -1,0 +1,364 @@
+
+	db	'(C) Copyright Hanno Hinsch 1983, 1984'
+
+	hibyte = 1
+	lobyte = 0
+
+;	equates for character sources
+	fromk	equ	1		;indicate char from keyboard
+	fromc1	equ	2		;indicate char from com1
+	fromf1	equ	4		;indicate char from file1
+;			8		; -- unused --
+	frompfk equ	16		;control character from keyboard
+	fromt1	equ	32		;indicate from file for display only
+	fromctl equ	64		;indicate from com1, ctrl char
+	kill	equ	128		;indicate 'claimed' char
+
+
+;	control character codes (ah = frompfk, al = code)
+;	Values under 133 are reserved by keyboard driver for extended codes
+	c_bktab equ	15
+	c_ai	equ	23
+	c_ad	equ	32
+	c_aw	equ	17
+	c_ae	equ	18
+	c_pgup	equ	73
+	c_pgdn	equ	81
+	c_ctpgdn equ	118
+	c_ctpgup equ	132
+	c_home	equ	71
+	c_cthome equ	119
+	c_end	equ	79
+	c_ctend equ	117
+	c_up	equ	72
+	c_dn	equ	80
+	c_left	equ	75
+	c_ctleft equ	115
+	c_rt	equ	77
+	c_ctrt	equ	116
+	c_ins	equ	82
+	c_del	equ	83
+	c_a1	equ	120
+	c_a2	equ	121
+	c_a3	equ	122
+	c_a4	equ	123
+	c_a5	equ	124
+	c_a6	equ	125
+	c_a7	equ	126
+	c_a8	equ	127
+	c_a9	equ	128
+	c_a0	equ	129
+	c_adash equ	130
+	c_aequ	equ	131
+
+;	KBIOS.ASM assumes this group starts at 140 (order is important)
+	c_sclk	equ	140			;scroll lock
+	c_n7	equ	141			;keypad 7
+	c_n8	equ	142			;keypad 8
+	c_n9	equ	143			;keypad 9
+	c_minus equ	144			;keypad minus
+	c_n4	equ	145			;keypad 4
+	c_n5	equ	146			;keypad 5
+	c_n6	equ	147			;keypad 6
+	c_plus	equ	148			;keypad plus
+	c_n1	equ	149			;keypad 1
+	c_n2	equ	150			;keypad 2
+	c_n3	equ	151			;keypad 3
+	c_n0	equ	152			;keypad 0
+	c_ndel	equ	153			;keypad delete key (ansi shft)
+
+
+;	offsets into pfdeftab (pf key definitions
+	dpfring equ	0	;ring action
+	dpfx	equ	1	;string (XSTR
+	dpfbs	equ	2	;backspace key
+	dpfent	equ	3	;enter key
+	dpf3	equ	4	;pf 3...
+	dpf4	equ	5
+	dpf5	equ	6
+	dpf6	equ	7
+	dpf7	equ	8
+	dpf8	equ	9
+	dpf9	equ	10
+	dpf10	equ	11
+	dpfa	equ	12	;answerback
+	dpfpr	equ	13	;dial prefix
+	dpfsuf	equ	14	;dial suffix
+	dpfnum	equ	15	;tel number
+	dpf1	equ	16	;pf 1
+	dpf2	equ	17	;pf 2
+	dpfspre equ	18	;unused
+	dpfssuf equ	19	; "
+	dpfdisc equ	20	; "
+	dpfconn equ	21	; "
+	dpfcher equ	22	; "
+	dpfcmer equ	23	; "
+	dpftime equ	24	; "
+	dpfbrk	equ	25	; "
+	dpfprot equ	26	; "
+	dpfs1	equ	27
+	dpfs2	equ	28
+	dpfs3	equ	29
+	dpfs4	equ	30
+	dpfs5	equ	31
+	dpfs6	equ	32
+	dpfs7	equ	33
+	dpfs8	equ	34
+	dpfs9	equ	35
+	dpfs10	equ	36
+
+rvideof equ	1		;chr in message that signals reverse video
+hilitef equ	2		;chr in message that signals hilite
+nattrf	equ	3		;chr in message that signals normal attibutes
+
+; new file equates and structures...
+
+buflength	equ	512
+fstruc	struc
+feof	db	0
+fcnt	dw	0
+fbuf	db	buflength dup(?)
+fptr	dw	0
+fhandle dw	0
+foffsetl dw	0		;least significant word of file offset
+foffsetm dw	0		;most significant word of file offset
+fstruc	ends
+
+critrc	equ	200		;critical error handler rc
+
+;	tflag	db	0			;various flags
+	cmsleep equ	1		;command file "sleeping"
+	xmita	equ	2		;sending argument string
+	pfexit	equ	4		;'exit' signal
+	f1src	equ	8		;file1 is an active source
+	fcap	equ	16		;capture file active
+	lwait	equ	32		;waiting for line turnaround char
+	tdelay	equ	64		;turnaround delay active
+	t1src	equ	128		;file1 is active "display only" source
+
+;	parmf	db	0			;various settable flags
+	autolf	equ	1		;auto linefeed requested
+	hecho	equ	2		;host echo of chars requested
+	nofilt	equ	4		;no filtering of control chars
+	protxon equ	8		;xon/xoff support present
+	ltcon	equ	16		;line turnaround char available
+	capoff	equ	32		;toggle file capture (leave file open
+	prton	equ	64		;echo chars to LPT1
+	protxont equ	128		;telios xon protocol supported
+
+;	parm2	db	routek+routeh+nolist
+	diala	equ	1		;dial command active (set by parse
+	routek	equ	2		;route keyboard chars to cap file
+	routeh	equ	4		;route host chars to cap file
+	nolist	equ	8		;don't list commands in command file
+	cmndm	equ	16		;command mode active
+	expand	equ	32		;expand blank lines
+	clkoff	equ	64		;don't display clock
+	msgupd	equ	128		;updated message line on screen
+
+;	parm3	db	rtimer+screen+xmodem
+	xmodem	equ	1		;use xmodem protocol
+	rtimer	equ	2		;timeout timer is invalid
+	pause	equ	4		;temp stop getting chars from file
+	ptrans	equ	8		;protocol transfer in progress
+	kermit	equ	16		;use kermit protocol
+	screen	equ	32		;display chars on screen
+	graph	equ	64		;display chars as graphics
+	kblock	equ	128		;lock keyboard
+
+;	parm4	db	binfile+crsend
+	binfile equ	1		;transfering binary file
+	crsend	equ	2		;send cursor key codes to host
+	trcmnd	equ	4		;transaction -- stop cmnd files
+	trcomm	equ	8		;transaction -- stop comm port
+	emis	equ	16		;this is an EMIS variant
+	boss	equ	32		;this is a B.O.S.S. variant
+	qinact	equ	64		;qinput active
+	protrts equ	128		;cts/rts protocol active
+
+;	extrn	termtype:byte		; termtype = 0 iff native mode
+	tty	equ	0
+	nih	equ	1
+	mai	equ	2
+	ansi	equ	3
+	dost	equ	4
+	vt52	equ	5
+	ibm	equ	6
+	ti931	equ	7
+
+;	extrn	shift_state:byte
+	shift_numlk	equ	32
+	shift_sclk	equ	16
+	shift_alt	equ	8
+	shift_ctrl	equ	4
+
+;	extrn	tkstate:byte
+	decka	equ	1			;dec keypad application mode
+	decca	equ	2			;dec cursor application mode
+	decom	equ	4			;dec origin mode
+	decaw	equ	8			;dec autowrap
+
+;	extrn	cmdflg:byte
+	doact	equ	1		;'do' file active
+	f2	equ	2		;called by f2
+	noret	equ	4		;'don't return to conv mode' flag
+	cmderr	equ	8		;command was not successful
+	circ2	equ	16		;circumflex ('^') seen
+	lbsrch	equ	32		;searching for label
+	lbwrap	equ	64		;hit end of file during label search
+	doproc	equ	128		;doing procedure (return expected)
+
+;	extrn	chatter:byte
+	chat_off equ	0
+	chat_on  equ	1
+	chat_bug equ	2
+
+cmdline_len	equ	255
+
+;	This little jewel parses, sort of, a command.  The command may be
+;	abbreviated to 2 chrs followed by some delimiter, but any subsequent
+;	chars must match. If match, goto 'label', else fall through.
+
+isit	macro	label,string,suff
+	mov	di,offset cs:chr&suff
+	call	cisit
+	jne	end&suff
+	jmp	label
+chr&suff db	'&string',0
+end&suff:
+	endm
+
+if allocate eq 1
+
+chatter db	chat_on
+tflag	db	0
+parmf	db	0
+parm2	db	routek+routeh+nolist
+parm3	db	rtimer+screen+xmodem
+parm4	db	binfile+crsend
+
+shift_state	db	0
+tkstate 	db	0
+
+cmdflg	db	0
+cmdptr	dw	0
+cmdline db	255 dup(?)
+
+turnchr db	0			;set line turnaround char sent by host
+obtchr	db	0			;last char sent by host (observed tchr
+scrnum	db	1
+twtime	db	0			;set turnaround wait time
+twc	dw	0			;saved cx reg for time comp
+twd	dw	0			;saved dx reg for time comp
+trtmc	dw	0			;saved cx reg for transaction timer
+trtmd	dw	0			;saved dx reg for transaction timer
+
+wndc_id db	1
+wndc_tr db	0
+wndc_lc db	0
+wndc_br db	23
+wndc_rc db	79
+wndc_crsrow db	0
+wndc_crscol db	0
+wndc_attr   db	7
+
+; display attributes
+nattr_val	db	7
+bckgrnd_val	db	0
+hilite_val	db	15
+reverse_val	db	0
+reverseb_val	db	7
+border_val	db	0
+
+msgnum	dw	0
+aumsg	dw	34		;last autolf msg
+fimsg	dw	31		;last filter msg
+ecmsg	dw	29		;last echo msg
+tcmsg	dw	42		;last tchar msg
+bamsg	dw	45		;last baud rate msg
+pamsg	dw	36		;last parity msg
+protmsg dw	73		;last flow cntrl msg
+romsg	dw	85		;last route msg
+exmsg	dw	91		;last blank expansion
+camsg	dw	54
+prmsg	dw	61
+cpmsg	dw	114		;selected comm port
+kxmsg	dw	112		;protocol set (xmodem,kermit)
+lastcdmsg	dw	0	;remember last carrier status msg
+temsg	dw	121		;current terminal emulation
+scmsg	dw	109		;screen
+chmsg	dw	122		;chatter
+damsg	dw	125		;data type
+cumsg	dw	134		;cursor
+
+
+slepc	dw	?		;first word of sleep time
+slepd	dw	?		;second word of sleep time
+
+timeout db	10			;deadman timer value (seconds)
+timerc	dw	0			;saved cx reg for timeout
+timerd	dw	0			;saved dx reg for timeout
+maxretry db	10		;max retries on protocol transfer timeout
+
+commport db	1		;current communications port
+
+cflen	dw	0		;length of cap file name
+cfname	db	30 dup (' ')    ;space for cap file name
+sflen	dw	0		;length of send file name
+sfname	db	30 dup (' ')    ;space for send file name
+
+tabnum	dw	0		;*** unused
+tabarray db	1,7 dup (0),1, 7 dup (0),1, 7 dup (0),1, 7 dup (0),1, 7 dup (0)
+	db	1,7 dup (0),1, 7 dup (0),1, 7 dup (0),1, 7 dup (0),1, 7 dup (0)
+
+termtype db	0		;current terminal emulation
+; emulation parameters: first byte contains number of entries in list
+emuparm db	10 dup (?)
+
+public	tflag,parmf,parm2,parm3,cmdflg,turnchr,obtchr,scrnum,twc,twd
+public	cmdptr,cmdline,timeout,timerc,timerd,commport,cpmsg,emuparm
+public	wndc_id,wndc_tr,wndc_lc,wndc_br,wndc_rc,wndc_crsrow,wndc_crscol
+public	wndc_attr,shift_state,tkstate
+public	aumsg,fimsg,ecmsg,tcmsg,bamsg,pamsg,slepc,slepd,cflen,cfname,twtime
+public	protmsg,romsg,exmsg,msgnum,camsg,prmsg,lastcdmsg,maxretry,kxmsg
+public	nattr_val,hilite_val,reverse_val,bckgrnd_val,reverseb_val,border_val
+public	sflen,sfname,tabnum,tabarray,termtype,chatter,parm4
+public	temsg,scmsg,chmsg,damsg,cumsg,trtmd,trtmc
+
+else
+
+	extrn	slepc:word,slepd:word,sflen:word,sfname:byte,cflen:word
+	extrn	cfname:byte,timeout:byte,timerc:word,timerd:word,maxretry:byte
+
+	extrn	nattr_val:byte,hilite_val:byte,reverse_val:byte,bckgrnd_val:byte
+	extrn	reverseb_val:byte,border_val:byte
+
+	extrn	protmsg:word,romsg:word,exmsg:word,camsg:word,prmsg:word
+
+	extrn	wndc_id:byte,wndc_tr:byte,wndc_lc:byte,wndc_br:byte
+	extrn	wndc_rc:byte,wndc_crsrow:byte,wndc_crscol:byte,wndc_attr:byte
+
+	extrn	tflag:byte,parmf:byte,parm2:byte,parm3:byte,parm4:byte
+
+	extrn	shift_state:byte,tkstate:byte
+
+	extrn	cmdptr:word,cmdline:byte,cmdflg:byte
+
+	extrn	twtime:byte,commport:byte
+
+	extrn	aumsg:word,fimsg:word,kxmsg:word,cpmsg:word
+	extrn	ecmsg:word,tcmsg:word,bamsg:word,pamsg:word
+	extrn	prmsg:word,camsg:word,lastcdmsg:word
+	extrn	temsg:word,scmsg:word,chmsg:word,damsg:word,cumsg:word
+
+	extrn	obtchr:byte,turnchr:byte
+	extrn	scrnum:byte,emuparm:byte
+	extrn	msgnum:word
+	extrn	twc:word,twd:word
+	extrn	chatter:byte
+
+	extrn	tabnum:word,tabarray:byte,termtype:byte
+	extrn	trtmc:word,trtmd:word
+
+endif
+

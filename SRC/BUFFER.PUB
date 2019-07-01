@@ -1,0 +1,30 @@
+
+;------ following definitions for buffer1 and buffer2
+
+parln	equ	10		;paragraphs per line
+
+if allocate eq 1
+
+bufstart dw	0		;physical start of buffer (segment)
+bufend	dw	0		;physical end of buffer (segment)
+
+;usage note: these pointers should never be left pointing at BUFEND
+pageptr dw	0		;pointer to top of current virtual page
+scrnptr dw	0		;pointer to top of current screen (segment)
+homeptr dw	0		;pointer to top of first screen (segment)
+endptr	dw	0		;pointer to top of last screen	(segment)
+
+linelen db	80		;words on a line
+parlnw	dw	parln		;for mul and div instructions
+parlnb	db	parln
+
+public	bufstart,bufend,scrnptr,homeptr,endptr,linelen,parlnw,parlnb
+public	pageptr
+else
+
+extrn	bufstart:word,bufend:word
+extrn	scrnptr:word,homeptr:word,endptr:word,pageptr:word
+extrn	linelen:byte,parlnw:word,parlnb:byte
+
+endif
+
